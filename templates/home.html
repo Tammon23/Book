@@ -8,7 +8,7 @@
       <tr>
       {% for b in books %}
         <td><a href="{{ url_for('book', isbn=b['BISBN']) }}"><img src="{{ url_for('static', filename='img/1559138382833.jpg') }}" alt="Image of {{ b['BTitle'] }}" width="300" height="300"> </a><br> {{ b['BTitle'] }} <br> $1.00 </td>
-        {% if loop.index is divisibleby 6 or loop.last %}
+        {% if loop.index is divisibleby 3 or loop.last %}
           </tr>
           {% if not loop.last %}
           <tr>
