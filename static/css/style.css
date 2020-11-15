@@ -1,6 +1,12 @@
 body {
-    background-color: #e5faf8;
+    background-color: #E9FBF9;
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
 }
+footer {
+	background-color: #e0f9f7;
+}
+
+
 table {
     border-spacing: 15px;
 }
@@ -11,7 +17,4 @@ td {
 table.center {
     margin-left:auto;
     margin-right:auto;
-}
-footer {
-    background-color: blue;
 }
