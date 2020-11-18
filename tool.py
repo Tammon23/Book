@@ -31,8 +31,10 @@ def genbook():
     courseID = rm.choice(constants.courseIds)
 
     BNumber = rm.randint(0, 200)
+    BPic = rm.choice(constants.sampleBoookPics)
+
     # print(title,author, isbn)
-    return {'id': BNumber, 'title': title, 'author': author, 'isbn': isbn, 'courseID': courseID, 'BPic': None}
+    return {'id': BNumber, 'title': title, 'author': author, 'isbn': isbn, 'courseID': courseID, 'BPic': BPic}
 
 
 # DB setup
@@ -104,12 +106,15 @@ def userLogin(email, password, conn):
     u = getUser("UPassword", email, conn)
 
     if u is None:
-        return False
+        return None
 
     # verifying password is the stored one
     salt = u["UPassword"][:64]
 
-    return u["UPassword"] == hash_password(password, salt.encode('ascii'))
+    if u["UPassword"] == hash_password(password, salt.encode('ascii')):
+        return u
+
+    return None
 
 
 # given a username, their profile is retrieved
@@ -146,31 +151,26 @@ def register(username, password, email, conn):
         if isAvailableEmail(email, conn):
             if isAvailableUsername(username, conn):
                 # generate a user's profile
-                user = (
-                    username,
-                    hash_password(password, None),
-                    email,
-                    json.dumps([]),  # list of books
-                    ""  # other info
-                )
+                user = dict(UserID=username, UPassword=hash_password(password, None), UEmail=email,
+                            UBooks=json.dumps([]), UOtherInfo="")
 
                 # insert user into the db
                 cur = conn.cursor(dictionary=True)
-                insertion_command = "INSERT INTO Users (UserID, UPassword, UEmail, UBooks, UOtherInfo) VALUES (%s, %s, %s, " \
-                                    "%s, %s) "
-                cur.execute(insertion_command, user)
+                insertion_command = "INSERT INTO Users (UserID, UPassword, UEmail, UBooks, UOtherInfo) VALUES (%s, " \
+                                    "%s, %s, %s, %s) "
+
+                cur.execute(insertion_command, tuple(user.values()))
+
                 conn.commit()
 
-                return True
+                return True, user
 
             else:
-                print(f"Username: {username} is not available")
+                return False, f"Username: {username} is not available"
         else:
-            print(f"Email: {email} is not available")
+            return False, f"Email: {email} is not available"
     else:
-        print(f"Email: {email} is not a university of windsor email")
-
-    return False
+        return False, f"Email: {email} is not a university of windsor email"
 
 
 def hash_password(password, salt=None):

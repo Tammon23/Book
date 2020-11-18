@@ -10,3 +10,14 @@ courseIds = ['COMP-1000', 'COMP-1400', 'COMP-1410', 'COMP-2120', 'COMP-2140', 'C
              'MATH-4300', 'MATH-4570', 'MATH-4580', 'MATH-4581', 'MATH-4960', 'MATH-4980', 'MATH-4981', 'STAT-2910',
              'STAT-2920', 'STAT-2950', 'STAT-3920', 'STAT-3950', 'STAT-3960', 'STAT-4000', 'STAT-4200', 'STAT-4410',
              'STAT-4460', 'STAT-4470', 'STAT-4500', 'STAT-4490', 'STAT-4550', 'STAT-4980', 'STAT-4981']
+
+sampleBoookPics = [
+    "https://www.cl.cam.ac.uk/~rja14/Papers/book2coverlarge.jpg",
+    "https://i.pinimg.com/originals/da/39/9d/da399dc7b490481b5a5da4b97a41c495.jpg",
+    "https://www.goodillustration.com/blog/wp-content/uploads/2016/12/Matrix-SB1-cover-TEMP.jpg",
+    "https://images-na.ssl-images-amazon.com/images/I/415WG149S4L.jpg",
+    "https://pup-assets.imgix.net/onix/images/9780691159409.jpg?w=640&auto=format",
+    "https://opentextbc.ca/selfpublishguide/wp-content/uploads/sites/194/2017/10/OTB094-01-BCREADS-COURSEPACK-2-COVER-STORE.jpg",
+    "https://lithub.com/wp-content/uploads/2018/12/unnamed.png",
+    "https://media.wired.com/photos/5dfc0b15a03b9b0008afa1a0/master/w_1600%2Cc_limit/Science_books_9781328879981_hres.jpg"
+]
