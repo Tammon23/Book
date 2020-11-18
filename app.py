@@ -1,7 +1,9 @@
-import os, tool
-from flask import Flask, render_template, flash, redirect, url_for, session, request
-import mysql.connector
+import os
+import tool
 import random as rm
+import mysql.connector
+
+from flask import Flask, render_template, redirect, url_for, request, session, jsonify
 
 # DB connection
 conn = mysql.connector.connect(user='root', password='root', host="localhost", database="book")
@@ -21,7 +23,7 @@ def home():
     cur = conn.cursor(dictionary=True)
 
     # Fetch some number of books from DB to display
-    cur.execute("select * from books limit %s", [25])
+    cur.execute("select * from books limit %s", [24])
     books = cur.fetchall()
 
     cur.close()
@@ -76,35 +78,75 @@ def search():
         return render_template('search.html')
 
 
+# DB signup page
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        email = request.form["exampleInputEmail1"]
+        username = request.form["userName1"]
+        password = request.form["exampleInputPassword1"]
+        confirm_password = request.form["exampleInputPassword2"]
+
+        if password == "":
+            print("password field empty")
+            return redirect(url_for('signup'))
+            # return jsonify({"error": "password field empty"})
+
+        if password != confirm_password:
+            print("password does not match confirmed password")
+            return redirect(url_for('signup'))
+            # return jsonify({"error": "password does not match confirmed password"})
+
+        # attempting to create account, if account creation fails, returns False and reason is printed
+
+        attempt_status, result = tool.register(username, password, email, conn)
+
+        # if the account could not be registered display why
+        if not attempt_status:
+            print(result)
+            return redirect(url_for('signup'))
+            # return jsonify({"error": result})
+
+        # if the account was created successfully log the account in
+        # result should contain the user dict
+
+        return login(result)
+        # return jsonify({"ok": "boomer"})
+
+    return render_template('signup.html')
+
+
 # DB login page
 @app.route('/login', methods=['GET', 'POST'])
-def login():
+def login(user=None):
     if request.method == "POST":
-        email = request.form["InputEmail"]
-        password = request.form["InputPassword"]
 
-        if tool.userLogin(email, password, conn):
+        # no user information is given, then look for credentials matching
+        # that of the form
+        # (should only be given after a successful signup)
+        if user is None:
+            email = request.form["InputEmail"]
+            password = request.form["InputPassword"]
+            user = tool.userLogin(email, password, conn)
+
+        # if a user with matching credentials was found
+        # save information into session
+        if user is not None:
+            session['logged_in'] = True
+            session['email'] = user["UEmail"]
+            session['user_type'] = "user"
+            session['user_dict'] = user
+
             return redirect(url_for('home'))
         else:
             print("incorrect password or email")
     return render_template("login.html")
 
 
-# DB signup page
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == "POST":
-        email = request.form["exampleInputEmail1"]
-        username = request.form["userName1"]
-        password = request.form["exampleInputPassword1"]
-        confirm_password = request.form["exampleInputPassword2"]
-
-        if password == confirm_password:
-            # attempting to create account, if account creation fails, returns False and reason is printed
-            if tool.register(username, password, email, conn):
-                return redirect(url_for('home'))
-
-    return render_template("signup.html")
+# posting page
+@app.route('/posting')
+def posting():
+    return render_template("posting.html")
 
 
 if __name__ == '__main__':

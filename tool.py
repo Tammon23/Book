@@ -103,7 +103,7 @@ def userLogin(email, password, conn):
     cur = conn.cursor(dictionary=True)
 
     # getting the users infomation
-    u = getUser("UPassword", email, conn)
+    u = getUser("*", email, conn)
 
     if u is None:
         return None
