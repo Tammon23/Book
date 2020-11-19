@@ -81,69 +81,66 @@ def search():
 # DB signup page
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
-        email = request.form["exampleInputEmail1"]
-        username = request.form["userName1"]
-        password = request.form["exampleInputPassword1"]
-        confirm_password = request.form["exampleInputPassword2"]
-
-        if password == "":
-            print("password field empty")
-            return redirect(url_for('signup'))
-            # return jsonify({"error": "password field empty"})
-
-        if password != confirm_password:
-            print("password does not match confirmed password")
-            return redirect(url_for('signup'))
-            # return jsonify({"error": "password does not match confirmed password"})
-
-        # attempting to create account, if account creation fails, returns False and reason is printed
-
-        attempt_status, result = tool.register(username, password, email, conn)
-
-        # if the account could not be registered display why
-        if not attempt_status:
-            print(result)
-            return redirect(url_for('signup'))
-            # return jsonify({"error": result})
-
-        # if the account was created successfully log the account in
-        # result should contain the user dict
-
-        return login(result)
-        # return jsonify({"ok": "boomer"})
-
     return render_template('signup.html')
+
+
+# used to verify if all fields when signup is valid
+@app.route('/verifySignUp', methods=['POST'])
+def verifySignUp():
+    email = request.form["email"]
+    username = request.form["username"]
+    password = request.form["password"]
+    confirm_password = request.form["confirm_password"]
+
+    if password == "":
+        return jsonify({"error": "password field empty"})
+
+    if password != confirm_password:
+        return jsonify({"error": "password does not match confirmed password"})
+
+    # attempting to create account, if account creation fails, returns False and reason is printed
+    attempt_status, result = tool.register(username, password, email, conn)
+
+    # if the account could not be registered display why
+    if not attempt_status:
+        return jsonify({"error": result})
+
+    # if the account was created successfully log the account in
+    # result should contain the user dict
+
+    return verifyLogin(result)
 
 
 # DB login page
 @app.route('/login', methods=['GET', 'POST'])
-def login(user=None):
-    if request.method == "POST":
-
-        # no user information is given, then look for credentials matching
-        # that of the form
-        # (should only be given after a successful signup)
-        if user is None:
-            email = request.form["InputEmail"]
-            password = request.form["InputPassword"]
-            user = tool.userLogin(email, password, conn)
-
-        # if a user with matching credentials was found
-        # save information into session
-        if user is not None:
-            session['logged_in'] = True
-            session['email'] = user["UEmail"]
-            session['user_type'] = "user"
-            session['user_dict'] = user
-
-            return redirect(url_for('home'))
-        else:
-            print("incorrect password or email")
+def login():
     return render_template("login.html")
 
 
-# posting page
+# used to verify if all fields when logging in is valid
+@app.route('/verifyLogin', methods=['POST'])
+def verifyLogin(user=None):
+    # no user information is given, then look for credentials matching
+    # that of the form
+    # (should only be given after a successful signup)
+    if user is None:
+        email = request.form["email"]
+        password = request.form["password"]
+        user = tool.userLogin(email, password, conn)
+
+    # if a user with matching credentials was found
+    # save information into session
+    if user is not None:
+        session['logged_in'] = True
+        # session['email'] = user["UEmail"]
+        # session['user_type'] = "user"
+        session['user_dict'] = user # all information needed can be found via this dict
+
+        return redirect(url_for('home'))
+    else:
+        return jsonify({'error': 'Incorrect password or email'})
+
+
 @app.route('/posting')
 def posting():
     return render_template("posting.html")
