@@ -58,12 +58,11 @@ def search():
         cur = conn.cursor(dictionary=True)
 
         # Grab info from HTML form
-        # method = request.form.get('method')
+        method = request.form.get('searchby')
         query = request.form.get('query').strip()
 
-        print("QUERY GOT {}".format(query))
-
-        cur.execute("select * from books where BCourse = %s", [query])
+        print("select * from books where {} like {}".format(method, '%' + query + '%'))
+        cur.execute("select * from books where %s like %s", (method, '%' + query + '%'))
         books = cur.fetchall()
 
         # Add random price
