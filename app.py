@@ -105,7 +105,7 @@ def search():
             b['price'] = "$" + str(rm.randrange(600)) + "." + str(rm.randrange(100)).zfill(2)
 
         cur.close()
-        return render_template('search.html', books=books, post=True)
+        return render_template('search.html', books=books, post=True, query=query)
 
     # GET method, display search and search options
     else:
