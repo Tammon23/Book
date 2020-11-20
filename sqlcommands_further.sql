@@ -3,7 +3,7 @@
  
 /*Inserting new users*/
 INSERT INTO Users
-VALUES ( 'UserID', 'UPassword', 'UBooks', 'UOtherInfo'); /*strings here are just place holder, replace them by real generated strings*/
+VALUES ( 'UserID', 'UEmail', 'UPassword', 'IsAdmin', 'UBooks', 'UOtherInfo'); /*strings here are just place holder, replace them by real generated strings*/
 
 /*Inserting new books*/
 INSERT INTO Books
@@ -40,7 +40,8 @@ WHERE BISBN = 'ISBNthatNeeded'; /*strings in commands might be replaced by strin
 
 /* look up all uesers */
 SELECT * /*can be changed to any other attributes for specific needs*/
-FROM Users;
+FROM Users
+/*WHERE IsAdmin = 1*/ /*an example for getting user list with further information, here is getting admin user list*/;
 
 
 /* changing/updating information for specific needs */
