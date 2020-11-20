@@ -17,10 +17,10 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 		
 		<!-- Note: This is the way to use the css when doing local work in the same directory without Flask -->
-		<link rel="stylesheet" href="style.css" type="text/css">
+<!--		<link rel="stylesheet" href="style.css" type="text/css"> -->
 		
 		<!-- This is the way to use the css with flask in the correct directory -->
-<!--		<link rel="stylesheet" href="../static/css/style.css" type="text/css"> -->
+		<link rel="stylesheet" href="../static/css/style.css" type="text/css">
 
 	</head>
 	<body>
@@ -29,9 +29,10 @@
 				<!-- Logo -->
 				<a class="navbar-brand" href="{{ url_for('home') }}">
 					<!-- For local machine work in same directory -->
-					<img src="bookLogo.png" alt="Book logo" width="100" height="100">
+<!--					<img src="bookLogo.png" alt="Book logo" width="100" height="100"> -->
+
 					<!-- For use with Flask in nested directory -->
-<!--					<img src="../static/img/bookLogo.png" alt="Book logo" width="100" height="100">-->
+					<img src="../static/img/bookLogo.png" alt="Book logo" width="100" height="100">
 				</a>
 				<ul class="navbar-nav mr-auto">
 					{% if not session.logged_in %}
