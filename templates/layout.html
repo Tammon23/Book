@@ -3,96 +3,77 @@
 <html lang="en" dir="ltr">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
 		<!-- Latest compiled and minified CSS -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-
-		<link rel="stylesheet" href="style.css" type="text/css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
 		<!-- jQuery library -->
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 		<!-- Latest compiled JavaScript -->
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+		
+		<!-- Note: This is the way to use the css when doing local work in the same directory without Flask -->
+		<link rel="stylesheet" href="style.css" type="text/css">
+		
+		<!-- This is the way to use the css with flask in the correct directory -->
+<!--		<link rel="stylesheet" href="../static/css/style.css" type="text/css"> -->
 
 	</head>
 	<body>
-	<!-- header at top of page -->
-	
-	
-		<div class="header">
-			<ul class="ul_header">
-				<li class="li_header">
-					<a href="{{ url_for('home') }}">
-						<img src="bookLogo.png" alt="Book logo" width="100" height="100">
-					</a>
-				</li>
-				
-				{% if not session.logged_in %}
-				<li class="li_header">
-					<a href="{{ url_for('login') }}">
-						<button type="button">Log-in</button>
-					</a>
-				</li>
-				{% endif %}
-				
-				{% if session.logged_in %}
-				<li class="li_header">
-					<a href="{{ url_for('posting') }}">
-						<button type="button">Post Book</button>
-					</a>
-				</li>
-				{% endif %}
-				
-				<li class="li_header" style="margin:right">
-					<a href="{{ url_for('search') }}">
-						<button type="button">Search</button>
-					</a>
-				</li>
-				
-				<hr>
-			</ul>
-		</div>
-		
-		
-		<!--
-		<div class="topnav">
-			<a href="{{ url_for('home') }}">
-				<img src="bookLogo.png" alt="Book logo" width="100" height="100">
-			</a>
-			{% if not session.logged_in %}
-			<a href="{{ url_for('login') }}">
-				<button type="button">Log-in</button>
-			</a>
-			{% endif %}
-			{% if session.logged_in %}
-			<a href="{{ url_for('posting') }}">
-				<button type="button">Post Book</button>
-			</a>
-			{% endif %}
-			<div class="topnav-right">
+		<nav class="navbar navbar-expand-sm fixed-top header">
+			<div class="navbar-collapse collapse">
+				<!-- Logo -->
+				<a class="navbar-brand" href="{{ url_for('home') }}">
+					<!-- For local machine work in same directory -->
+					<img src="bookLogo.png" alt="Book logo" width="100" height="100">
+					<!-- For use with Flask in nested directory -->
+<!--					<img src="../static/img/bookLogo.png" alt="Book logo" width="100" height="100">-->
+				</a>
+				<ul class="navbar-nav mr-auto">
+					{% if not session.logged_in %}
+					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('login') }}">
+							<button type="button">Log-in</button>
+						</a>
+					</li>
+					{% endif %}
+					{% if session.logged_in %}
+					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('posting') }}">
+							<button type="button">Post Book</button>
+						</a>
+					</li>
+					{% endif %}
+				</ul>
 				<a href="{{ url_for('search') }}">
 					<button type="button">Search</button>
 				</a>
 			</div>
-		</div>
-		-->
-		
+		</nav>
 		{% block header %}{% endblock %}
+		<!-- Need line breaks to ensure that the body content isn't cut off by the navbar -->
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
 
 		<div class="container">
-
-		<!-- Rest of file will be inserted into this gap in the other html files -->
-		{% block body %}{% endblock %}
-
+			
+			<!-- Rest of file will be inserted into this gap in the other html files -->
+			{% block body %}{% endblock %}
+			
 		</div>
-	<footer>
-		<p>Creators:</p>
-		<p>Massimo Albano, Sean Janssens, Ikenna Uduh, Yuxi Wang, Dean Willavoys</p>
-		{% block footer %}{% endblock %}
-	</footer>
+		<footer>
+			<p>Creators:</p>
+			<p>Massimo Albano, Sean Janssens, Ikenna Uduh, Yuxi Wang, Dean Willavoys</p>
+			{% block footer %}{% endblock %}
+		</footer>
 	</body>
 
 </html>
