@@ -15,10 +15,10 @@
 			<input type="text" name="query">
 			<button type="submit" onsubmit="change()">Search!</button>
 		</form>
-		<div class="col-sm-10">
+		<div>
 			<section> <!-- table of all books that are found in this search -->
 				{% if books|length > 0 %}
-				<h4>Found {{books|length}} Result(s)</h4>
+				<h4>Found {{books|length}} Result(s) {{ b['search_term'] }}</h4>
 				{% endif %}
 				<table class="center">
 				<tr>
