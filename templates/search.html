@@ -13,7 +13,7 @@
 			</select>
 
 			<input type="text" name="query">
-			<button type="submit">Search!</button>
+			<button type="submit" onsubmit="change()">Search!</button>
 		</form>
 		<div class="col-sm-10">
 			<section> <!-- table of all books that are found in this search -->
@@ -32,7 +32,9 @@
 				  {% endif %}
 				<!-- This else only reached when books is empty -->
 				{% else %}
-				</tr><h2>No results</h2>
+				{% if post %}
+					</tr><h2>No results</h2>
+				{% endif %}
 				{% endfor %}
 			  </table>
 			</section>
