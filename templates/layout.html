@@ -38,20 +38,20 @@
 					{% if not session.logged_in %}
 					<li class="nav-item">
 						<a class="nav-link" href="{{ url_for('login') }}">
-							<button type="button">Log-in</button>
+							<button type="button" class="btn-lg btn-dark" value="">Log-in</button>
 						</a>
 					</li>
 					{% endif %}
 					{% if session.logged_in %}
 					<li class="nav-item">
 						<a class="nav-link" href="{{ url_for('posting') }}">
-							<button type="button">Post Book</button>
+							<button type="button" class="btn-lg btn-dark">Post Book</button>
 						</a>
 					</li>
 					{% endif %}
 				</ul>
 				<a href="{{ url_for('search') }}">
-					<button type="button">Search</button>
+					<button type="button" class="btn-lg btn-dark">Search</button>
 				</a>
 			</div>
 		</nav>
