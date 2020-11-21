@@ -3,20 +3,21 @@
 		<title>Search Results Page</title>
 {% endblock %}
 {% block body %}
-	<div class="row"> <!-- Contains the filter sidebar and the books found in the search -->
+	<div> <!-- Contains the filter sidebar and the books found in the search -->
 		<form method="POST">
 			<input type="text" name="query">
-			<button type="submit">Search!</button>
+			<button type="submit" class="btn-sm btn-dark">Search!</button>
 		</form>
+		<br>
 		<div>
 			<section> <!-- table of all books that are found in this search -->
 				{% if books|length > 0 %}
-				<h4>Found {{books|length}} Result(s) {{ b['search_term'] }}</h4>
+				<h4>Found {{books|length}} Result(s) Using: {{ search_term }}</h4>
 				{% endif %}
-				<table class="center">
+				<table class="table table-borderless">
 				<tr>
 				{% for b in books %}
-				  <td><a href="{{ url_for('book', isbn=b['BISBN']) }}"><img src="{{ b['BPic'] }}", alt="Image of {{ b['BTitle'] }}", width="300", height="300"> </a><br> {{ b['BTitle'] }} <br> $1.00 </td>
+				  <td><a href="{{ url_for('book', isbn=b['BISBN']) }}"><img src="{{ b['BPic'] }}", alt="Image of {{ b['BTitle'] }}", width="300", height="300"> </a><br> {{ b['BTitle'] }} <br> {{ b['price'] }} </td>
 				  {% if loop.index is divisibleby 3 or loop.last %}
 					</tr>
 					{% if not loop.last %}
