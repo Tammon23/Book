@@ -23,6 +23,7 @@ CREATE TABLE Users (
   UserID varchar(20) NOT NULL,
   UEmail varchar(30) NOT NULL,
   UPassword varchar(255) NOT NULL,
+  IsAdmin tinyint(1) NOT NULL DEFAULT 0, /*Newly added to check the status of users*/
   UBooks varchar(255),
   UOtherInfo varchar(255),
   PRIMARY KEY (UserID)
@@ -136,4 +137,4 @@ INSERT INTO Courses VALUES
 ('STAT-4550', 'Regression Analysis'),
 ('STAT-4980', 'Experimental Designs'),
 ('STAT-4981', 'Sampling Theory');
-COMMIT;*/
+COMMIT;

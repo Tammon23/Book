@@ -4,6 +4,7 @@ import random as rm
 import mysql.connector
 import sys
 from flask import Flask, render_template, redirect, url_for, request, session, jsonify
+from functools import wraps
 
 # DB connection
 conn = mysql.connector.connect(user='root', password='root', host="localhost", database="book")
@@ -11,12 +12,39 @@ conn = mysql.connector.connect(user='root', password='root', host="localhost", d
 app = Flask(__name__)
 
 
+# Wrapper function to verify that user is logged in
+# If user is not logged in, redirects to login page
+def isLoggedIn(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for('login'))
+
+    return wrap
+
+
+# Wrapper function to verify that user is logged in as admin
+# If user is not logged in as admin, redirects to home page
+# If user is not logged in, redirects to login
+def isLoggedAdmin(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            if session['user_type'] == 1:
+                return f(*args, **kwargs)
+            else:
+                return redirect(url_for('home'))
+        else:
+            return redirect(url_for('login'))
+
+    return wrap
+
+
 # Init redirect
 @app.route('/')
 def index():
-    if 'logged_in' in session and session['logged_in']:
-        return redirect((url_for(('home'))))
-
     return redirect(url_for('login'))
 
 
@@ -35,6 +63,7 @@ def home():
 
 # Page for specific book
 @app.route('/book/<string:isbn>')
+@isLoggedIn
 def book(isbn):
     cur = conn.cursor(dictionary=True)
 
@@ -61,12 +90,14 @@ def search():
         cur = conn.cursor(dictionary=True)
 
         # Grab info from HTML form
-        # method = request.form.get('method')
+        method = request.form.get('searchby').strip()
         query = request.form.get('query').strip()
 
-        print("QUERY GOT {}".format(query))
-
-        cur.execute("select * from books where BCourse = %s", [query])
+        # Builds query with column name using python string manipulation
+        # Method is within a set of fixed values, low risk of SQL injection
+        q = "select * from books where " + method + " like %s"
+        args = ('%' + query + '%', )
+        cur.execute(q, args)
         books = cur.fetchall()
 
         # Add random price
@@ -74,7 +105,7 @@ def search():
             b['price'] = "$" + str(rm.randrange(600)) + "." + str(rm.randrange(100)).zfill(2)
 
         cur.close()
-        return render_template('search.html', books=books, search_term=query)
+        return render_template('search.html', books=books, post=True, query=query)
 
     # GET method, display search and search options
     else:
@@ -119,6 +150,11 @@ def verifySignUp():
 def login():
     return render_template("login.html")
 
+@app.route('/logout')
+@isLoggedIn
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 # used to verify if all fields when logging in is valid
 @app.route('/verifyLogin', methods=['POST'])
@@ -136,7 +172,7 @@ def verifyLogin(user=None):
     if user is not None:
         session['logged_in'] = True
         # session['email'] = user["UEmail"]
-        # session['user_type'] = "user"
+        session['user_type'] = 2
         session['user_dict'] = user  # all information needed can be found via this dict
 
         return redirect(url_for('home'))
@@ -145,6 +181,7 @@ def verifyLogin(user=None):
 
 
 @app.route('/posting')
+@isLoggedIn
 def posting():
     # cur = conn.cursor()
     # cur.execute("select CourseID from courses")
@@ -208,6 +245,7 @@ def verifyPosting():
 
 
 if __name__ == '__main__':
+    #tool.db_insert_random_books(conn, conn.cursor(dictionary=True), 50)
     app.secret_key = os.urandom(12)
     app.debug = True
     app.run()
