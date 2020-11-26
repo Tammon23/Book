@@ -33,8 +33,8 @@ def genbook():
     BNumber = rm.randint(0, 200)
     BPic = rm.choice(constants.sampleBoookPics)
     BPrice = float(str(rm.randrange(600)) + "." + str(rm.randrange(100)).zfill(2))
-    BDesc = f"{title} is a {rm.choice(['great', 'awesome', 'bad', 'lovely', 'ok'])} book but now I am " + \
-            f"{rm.choice(['choosing', 'being forced to'])} sell it. The book is in " + \
+    BDesc = f"{title} is a{rm.choice([' great', 'n awesome', ' bad', ' lovely', 'n ok'])} book but now I am " + \
+            f"{rm.choice(['choosing', 'being forced'])} to sell it. The book is in " + \
             f"{rm.choice(['great', 'awesome', 'bad', 'lovely', 'ok'])} condition please contact me at the email " + \
             "above if interested."
 
