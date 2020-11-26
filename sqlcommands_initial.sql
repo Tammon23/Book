@@ -13,6 +13,8 @@ CREATE TABLE Books (
   BTitle varchar(255) NOT NULL,
   BAuthor varchar(255) NOT NULL,
   BCourse varchar(10) NOT NULL,
+  BPrice DECIMAL(6, 2) NOT NULL,
+  BDesc varchar(500),
   BPic varchar(255), /*a place holder for storing references to potentially more than one pictures*/
   BNumber INT, /*BNumber represents the number of books, rather than some kind of identity*/
   PRIMARY KEY (BISBN),
