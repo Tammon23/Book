@@ -44,6 +44,11 @@
 					{% endif %}
 					{% if session.logged_in %}
 					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('logout') }}">
+							<button type="button" class="btn-lg btn-dark">Logout</button>
+						</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link" href="{{ url_for('posting') }}">
 							<button type="button" class="btn-lg btn-dark">Post Book</button>
 						</a>
