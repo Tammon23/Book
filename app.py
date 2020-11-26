@@ -1,10 +1,12 @@
 import os
+import json
 import tool
+import constants
 import random as rm
 import mysql.connector
-import sys
-from flask import Flask, render_template, redirect, url_for, request, session, jsonify
 from functools import wraps
+from datetime import datetime
+from flask import Flask, render_template, redirect, url_for, request, session, jsonify
 
 # DB connection
 conn = mysql.connector.connect(user='root', password='root', host="localhost", database="book")
@@ -96,7 +98,7 @@ def search():
         # Builds query with column name using python string manipulation
         # Method is within a set of fixed values, low risk of SQL injection
         q = "select * from books where " + method + " like %s"
-        args = ('%' + query + '%', )
+        args = ('%' + query + '%',)
         cur.execute(q, args)
         books = cur.fetchall()
 
@@ -127,10 +129,10 @@ def verifySignUp():
     confirm_password = request.form["confirm_password"]
 
     if password == "":
-        return jsonify({"error": "password field empty"})
+        return jsonify({"error": "Password field empty"})
 
     if password != confirm_password:
-        return jsonify({"error": "password does not match confirmed password"})
+        return jsonify({"error": "Password does not match confirmed password"})
 
     # attempting to create account, if account creation fails, returns False and reason is printed
     attempt_status, result = tool.register(username, password, email, conn)
@@ -150,11 +152,13 @@ def verifySignUp():
 def login():
     return render_template("login.html")
 
+
 @app.route('/logout')
 @isLoggedIn
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
 
 # used to verify if all fields when logging in is valid
 @app.route('/verifyLogin', methods=['POST'])
@@ -170,9 +174,12 @@ def verifyLogin(user=None):
     # if a user with matching credentials was found
     # save information into session
     if user is not None:
+        if user['IsAdmin']:
+            session['user_type'] = 1
+        else:
+            session['user_type'] = 2
+
         session['logged_in'] = True
-        # session['email'] = user["UEmail"]
-        session['user_type'] = 2
         session['user_dict'] = user  # all information needed can be found via this dict
 
         return redirect(url_for('home'))
@@ -183,69 +190,68 @@ def verifyLogin(user=None):
 @app.route('/posting')
 @isLoggedIn
 def posting():
-    # cur = conn.cursor()
-    # cur.execute("select CourseID from courses")
-    # courseIDs = cur.fetchall()
-    # courseIDs = [tup[0] for tup in courseIDs]
-
-    return render_template("posting.html")
+    return render_template("posting.html", courses=constants.courseIds)
 
 
 @app.route('/verifyPosting', methods=['POST'])
 def verifyPosting():
     cur = conn.cursor(dictionary=True)
+    print(request.form)
 
     BISBN = request.form["BISBN"]
-    BTitle = request.form["BTitle"]
-    BAuthor = request.form["BAuthor"]
-    BCourse = request.form["BCourse"]
-    BPic = request.form["BPic"]
-    BNumber = request.form["BNumber"]
+    BTitle = request.form["BTitle"].strip()
+    BAuthor = request.form["BAuthor"].strip()
+    BCourse = request.form["BCourse"].strip()
+    BPrice = float(request.form["BPrice"])
+    BPic = rm.choice(constants.sampleBoookPics)
+    BNumber = int(request.form["BNumber"])
+    BDesc = request.form["BDesc"].strip()
 
-    # Verifying that all the fields provided
-    if BISBN == "":
-        return jsonify({'error': 'Missing ISBN'})
+    if not tool.isValidISBN(BISBN):
+        return jsonify({"error": "Please enter a valid ISBN"})
 
-    elif BTitle == "":
-        return jsonify({'error': 'Missing Title'})
+    if BCourse == "default":
+        return jsonify({"error": "Please select a course"})
 
-    elif BAuthor == "":
-        return jsonify({'error': 'Missing Author'})
-
-    elif BCourse == "":
-        return jsonify({'error': 'Missing Course Code'})
-
-    elif BNumber == "":
-        return jsonify({'error': 'Missing Number of Books'})
-
-    # verifying the are posting more than 0 of a particular book
-    if BNumber < 1:
-        return jsonify({'error': 'Must have positive number of books'})
-
-    # If no picture link was provided, then use the default one
-    if BPic == "":
-        BPic = "static/img/1559138382833.jpg"
-
-    # verifying the course code is a supported one
     try:
-        insertion_command = "INSERT INTO Books (BNumber, BTitle, BAuthor, BISBN, BCourse, BPic) VALUES (%s, %s, %s, " \
-                            "%s, %s, %s)"
+        insertion_command = "INSERT INTO Books (BISBN, BTitle, BAuthor, BCourse, BPrice, BDesc, BPic, BNumber) VALUES " \
+                            "(%s, %s, %s, %s, %s, %s, %s, %s)"
 
-        cur.execute(insertion_command, [BNumber, BTitle, BAuthor, BISBN, BCourse, BPic])
+        cur.execute(insertion_command, [BISBN, BTitle, BAuthor, BCourse, BPrice, BDesc, BPic, BNumber])
 
-    except mysql.connector.errors.IntegrityError:
+        conn.commit()
         cur.close()
-        return jsonify({'error': 'BCourse not an accepted one'})
 
-    except:
+    except mysql.connector.Error as err:
         cur.close()
-        return jsonify({'error': sys.exc_info()[0]})
+        return jsonify({"error": f"ISBN {BISBN} has already been posted"})
 
+    # updating the user's posting profile
+    postingHelper(BISBN)
+    return redirect(url_for('home'))
+
+
+def postingHelper(BISBN):
+    cur = conn.cursor(dictionary=True)
+    # adding the posting to the posting tables
+    insertion_command = "INSERT INTO Postings (UserID, UBooks, PostDates) VALUES (%s, %s, %s)"
+    cur.execute(insertion_command,
+                [session['user_dict']['UserID'], BISBN, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+
+    # updating the user's posting profile
+    usersBooks = session['user_dict']['UBooks']
+    usersBooks.append(BISBN)
+    update_command = "UPDATE Users SET UBooks = %s WHERE UserID = %s"
+    cur.execute(update_command, [json.dumps(usersBooks), session['user_dict']['UserID']])
+    conn.commit()
     cur.close()
 
 
 if __name__ == '__main__':
-    #tool.db_insert_random_books(conn, conn.cursor(dictionary=True), 50)
+    # tool.db_setup(conn, conn.cursor(dictionary=True), "sqlcommands_initial.sql")
+    # tool.db_insert_random_users(conn, 30)
+    # tool.db_insert_n_random_postings(conn, 48)
+
     app.secret_key = os.urandom(12)
     app.debug = True
     app.run()
