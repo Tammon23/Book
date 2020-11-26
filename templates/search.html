@@ -1,60 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
+{% extends "layout.html"%}
+{% block header %}
 		<title>Search Results Page</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<!-- Latest compiled and minified CSS -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+{% endblock %}
+{% block body %}
+	<div> <!-- Contains the filter sidebar and the books found in the search -->
+		<form method="POST">
+			<select name="searchby">
+				<option value="BTitle">Title</option>
+				<option value="BAuthor">Author</option>
+				<option value="BCourse" selected>Course Number</option>
+				<option value="BISBN">ISBN</option>
+			</select>
 
-		<!-- jQuery library -->
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-		<!-- Latest compiled JavaScript -->
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-		
-		<link href="style.css" rel="stylesheet" type="text/css" />
-	</head>
-	<body>
-    
-	<header>
-      <div>
-        <a href="index">
-          <img src="newBook.png", alt="Book logo" width="100", height="100">
-        </a>
-        <a href="search">click to search</a>
-        <hr>
-      </div>
-    </header>
-	
-	<div class="row"> <!-- Contains the filter sidebar and the books found in the search -->
-		
-		<div class="col-sm-2">
-			<aside> <!-- Filter side bar -->
-				<h2>Filter settings:</h2>
-			</aside>
-		</div>
-		
-		<div class="col-sm-10">
+			<input type="text" name="query">
+			<button type="submit" class="btn-sm btn-dark" onsubmit="change()">Search!</button>
+		</form>
+		<br>
+		<div>
 			<section> <!-- table of all books that are found in this search -->
-				<h4>#of Results</h4> <!-- TODO Replace with the number of results found -->
-				<table class="center">
+				{% if books|length > 0 %}
+				<h4>Found {{books|length}} Result(s) :  {{ query }}</h4>
+				{% endif %}
+				<table class="table table-borderless">
 				<tr>
 				{% for b in books %}
-				  <td><a href="{{ url_for('book', isbn=b['BIsbn']) }}"><img src="static/img/1559138382833.jpg", alt="Image of {{ b['BTitle'] }}", width="300", height="300"> </a><br> {{ b['BTitle'] }} <br> $1.00 </td>
+				  <td><a href="{{ url_for('book', isbn=b['BISBN']) }}"><img src="{{ b['BPic'] }}", alt="Image of {{ b['BTitle'] }}", width="300", height="300"> </a><br> {{ b['BTitle'] }} <br> {{ b['price'] }} </td>
 				  {% if loop.index is divisibleby 3 or loop.last %}
 					</tr>
 					{% if not loop.last %}
 					<tr>
 					{% endif %}
 				  {% endif %}
+				<!-- This else only reached when books is empty -->
 				{% else %}
-				</tr>
+				{% if post %}
+					</tr><h2>No results</h2>
+				{% endif %}
 				{% endfor %}
 			  </table>
 			</section>
 		</div>
 	</div>
-	
-	</body>
-</html>
+{% endblock %}

@@ -1,67 +1,23 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <title>Book</title>
-    <link href="style.css" rel="stylesheet" type="text/css" />
-    <link href="bookStyle.css" rel="stylesheet" type="text/css"/>
-<!---<style>
-img {
-  
-   border: 1px solid #555;
-}
-p {
-  float: center
-}
-</style>
---->
-  </head>
-  <body>
-    <header>
-      <div>
-        <!-- Header -->
-        <a href="index.html">
-          <img src="newBook.png", alt="Book logo" width="100", height="100">
-        </a>
-        <a href="search.html">click to search</a>
-        <hr>
-      </div>
-    </header>
+{% extends "layout.html"%}
+{% block header %}
+  <title>{{ book['BTitle'] }}</title>
+{% endblock %}
+{% block body %}
 
-
-    <div  style="display:inline-block;vertical-align:top;">"
-    <img src="book.png" alt="Book Title" width="400" height="600">
+    {% if book is defined %}
+    <div style="display:inline-block;vertical-align:top;">
+    <img src="{{ book['BPic'] }}" alt="Book Title" width="400" height="600">
     </div>
     <div style="display:inline-block;">
       <br><br><br><br><br>
       <p>Title: {{ book['BTitle'] }}</p>
       <p>Author: {{ book['BAuthor'] }}</p>
-      <p>ISBN-13: {{ book['BIsbn'] }} </p>
-      <p>Release Year:{{ book['Byear'] }} </p>
+      <p>ISBN-13: {{ book['BISBN'] }} </p>
+<!--      <p>Release Year:{{ book['Byear'] }} </p>-->
       <p>Related Course: {{ book['BCourse'] }} </p>
       </div>
+    {% else %}
+    <h1>No book found</h1>
+    {% endif %}
 
-  </body>
-</html>
-
- 
-=======
-      <p>Title: Computer Networks</p>
-      <p>Author: John Smith</p>
-      <p>ISBN-13: blahblahblah </p>
-      <p>Price: $15.00 </p>
-      <p>Release Year: 1999 </p>
-      <p>Related Course: COMP-3670 </p>
-
-      </div>
-    <!---
-    <p class="center">Title: Computer Networks<br>Author: John Smith<br>ISBN-13: blahblahblah<br>Price: $15.00<br>Release Year: 1999<br>Related Course: COMP-3670<br> </p>
-    --->
-  </body>
-</html>
-<!--- <h1 style="text-align:center;"><marquee>BOOK</marquee></h1>
-<h3>Here be image</h3>
-<h1>{{ book['title'] }}: ISBN-{{ book['isbn']}}</h1>
-<h2>{{ book['author'] }}</h2>
---> 
+{% endblock %}}

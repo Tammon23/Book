@@ -1,0 +1,33 @@
+.header {
+	background-color: #b2f1ea;
+	border-bottom: 5px solid #ddf9f6;
+	padding: 10px;
+}
+
+.container {
+	padding: 10px;
+}
+
+body {
+    background-color: #E9FBF9;
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+footer {
+	background-color: #b2f1ea;
+	border-top: 5px solid #ddf9f6;
+	padding: 10px;
+}
+
+table {
+    border-spacing: 15px;
+    border-collapse: collapse;
+}
+td {
+    order:none;
+    text-align: center;
+}
+table.center {
+    margin-left:auto;
+    margin-right:auto;
+}
+

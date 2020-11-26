@@ -20,25 +20,25 @@
         <div class="row" style="padding: 50px 0">
             <div class="col-3"></div>
             <div class="col-6">
-                <form>
+                <form action="signup", method="post">
                     <div style="text-align: center"> 
                         <h2>Sign-up</h2>
                     </div>
                     <div class="form-group">
                         <label for="exampleInputEmail1">Email address</label>
-                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+                        <input type="email" class="form-control" id="exampleInputEmail1" name="exampleInputEmail1" aria-describedby="emailHelp">
                     </div>
                     <div class="form-group">
-                    <label for="exampleInputEmail1">Username</label>
-                        <input type="email" class="form-control" id="userName1" aria-describedby="userNameHelp">
+                    <label for="userName1">Username</label>
+                        <input type="text" class="form-control" id="userName1" name="userName1" aria-describedby="userNameHelp">
                     </div>
                     <div class="form-group">
                         <label for="exampleInputPassword1">Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword1">
+                        <input type="password" class="form-control" id="exampleInputPassword1" name="exampleInputPassword1">
                     </div>
                     <div class="form-group">
                         <label for="exampleInputPassword2">Confirm Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword2">
+                        <input type="password" class="form-control" id="exampleInputPassword2" name="exampleInputPassword2">
                     </div>
                     <div style="text-align: center">
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -46,7 +46,7 @@
                     </div>
                     <div style="text-align: right">
                         <small style="text-align: right; margin: 0 10px 0 0">
-                        <a href="login.html" style=>Already have an account? Login here!</a></small>
+                        <a href="{{ url_for('login') }}" style=>Already have an account? Login here!</a></small>
                      </div>
                     <!-- <button type="button" class="btn btn-danger">Danger</button> -->
                 </form>
@@ -64,9 +64,12 @@
 
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="static/js/SignUpVerificationFunction.js"></script>
+
+<!--    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"-->
+<!--        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"-->
+<!--        crossorigin="anonymous"></script>-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
         crossorigin="anonymous"></script>
