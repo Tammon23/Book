@@ -33,10 +33,14 @@ def genbook():
     BNumber = rm.randint(0, 200)
     BPic = rm.choice(constants.sampleBoookPics)
     BPrice = float(str(rm.randrange(600)) + "." + str(rm.randrange(100)).zfill(2))
+    BDesc = f"{title} is a {rm.choice(['great', 'awesome', 'bad', 'lovely', 'ok'])} book but now I am " + \
+            f"{rm.choice(['choosing', 'being forced to'])} sell it. The book is in " + \
+            f"{rm.choice(['great', 'awesome', 'bad', 'lovely', 'ok'])} condition please contact me at the email " + \
+            "above if interested."
 
     # print(title,author, isbn)
     return {'id': BNumber, 'title': title, 'author': author, 'isbn': isbn, 'courseID': courseID, 'BPic': BPic,
-            'BPrice': BPrice, "BDesc": ""}
+            'BPrice': BPrice, 'BDesc': BDesc}
 
 
 # DB setup
@@ -66,8 +70,8 @@ def db_setup(connection, cursor, filename):
 def db_add_book(connection, cursor, book_info):
     if connection is not None:
 
-        insertion_command = "INSERT INTO Books (BNumber, BTitle, BAuthor, BISBN, BCourse, BPic, BPrice, BDesc) VALUES " \
-                            "(%s, %s, %s, %s, %s, %s, %s, %s) "
+        insertion_command = "INSERT INTO Books (BNumber, BTitle, BAuthor, BISBN, BCourse, BPic, BPrice, BDesc) " \
+                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
 
         if type(book_info) == list:
             cursor.executemany(insertion_command, book_info)
@@ -103,7 +107,7 @@ def db_get_n_books(cursor, numberOfBooks):
 # adds b users to the database
 def db_insert_random_users(conn, numUsers):
     while numUsers > 0:
-        username = names.get_full_name().replace(" ", "_")
+        username = names.get_full_name().replace(" ", "_")[:18]
         password = "VerySecurePassword"
         email = username + "@uwindsor.ca"
         valid, _ = register(username, password, email, conn)
@@ -128,7 +132,13 @@ def db_insert_n_random_postings(conn, numPostings):
     availableUserIds = cur.fetchall()
 
     for _ in range(numPostings):
-        postdate = f"{rm.randint(1900, 2019)}-{rm.randint(1, 13):02d}-{rm.randint(1, 30):02d} {rm.randint(0, 24):02d}:{rm.randint(0, 60):02d}:{rm.randint(0, 59):02d}"
+        year = rm.randint(1900, 2019)
+        month = rm.randint(1, 13)
+        day = rm.randint(1, 30)
+        hour = rm.randint(0, 24)
+        minute = rm.randint(0, 60)
+        second = rm.randint(0, 59)
+        postdate = f"{year}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d}"
 
         # creating a book then adding it to the db
         book = genbook()
@@ -151,8 +161,6 @@ def db_insert_n_random_postings(conn, numPostings):
 
 # checks if a username + password matches anything stored
 def userLogin(email, password, conn):
-    cur = conn.cursor(dictionary=True)
-
     # getting the users infomation
     u = getUser("*", email, conn)
 
@@ -169,12 +177,17 @@ def userLogin(email, password, conn):
 
 
 # given a username, their profile is retrieved
-def getUser(attribute, email, conn):
+def getUser(attribute, emailOrUsername, conn):
     # looking for user in DB
     cur = conn.cursor(dictionary=True)
 
-    # Grab info for user based on email
-    cur.execute(f"select {attribute} from users where UEmail = '{email}'")
+    # if email give search by email
+    if emailOrUsername.endswith("@uwindsor.ca"):
+        cur.execute(f"select {attribute} from users where UEmail = '{emailOrUsername}'")
+
+    # otherwise search by username
+    else:
+        cur.execute(f"select {attribute} from users where UserID = '{emailOrUsername}'")
 
     # Try to fetch user info from DB
     u = cur.fetchone()
@@ -203,12 +216,12 @@ def register(username, password, email, conn):
             if isAvailableUsername(username, conn):
                 # generate a user's profile
                 user = dict(UserID=username, UPassword=hash_password(password, None), UEmail=email,
-                            UBooks='[]', UOtherInfo="")
+                            UBooks='[]', UOtherInfo="", IsAdmin=0)
 
                 # insert user into the db
                 cur = conn.cursor(dictionary=True)
-                insertion_command = "INSERT INTO Users (UserID, UPassword, UEmail, UBooks, UOtherInfo) VALUES (%s, " \
-                                    "%s, %s, %s, %s) "
+                insertion_command = "INSERT INTO Users (UserID, UPassword, UEmail, UBooks, UOtherInfo, IsAdmin) " \
+                                    "VALUES (%s, %s, %s, %s, %s, %s)"
 
                 cur.execute(insertion_command, tuple(user.values()))
 
@@ -280,9 +293,10 @@ def isUniversityEmail(email):
 
 # validates if a given number is a valid isbn13 number
 def isValidISBN(ISBN):
-    if ISBN < 1000000000000 or ISBN > 9999999999999:
+    if len(ISBN) != 13:
         return False
 
+    ISBN = int(ISBN)
     multiplier = 3
     check_sum = ISBN % 10
     calculated_check_sum = 0
