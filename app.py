@@ -55,12 +55,17 @@ def index():
 def home():
     cur = conn.cursor(dictionary=True)
 
-    # Fetch some number of books from DB to display
-    cur.execute("select * from books limit %s", [24])
-    books = cur.fetchall()
+    # Fetch some number of posts from DB to display
+    cur.execute("select * from postings limit %s", [24])
+    postings = cur.fetchall()
+
+    # getting more book information from each post
+    for post in postings:
+        cur.execute("select * from books where BISBN = %s", [post['UBooks']])
+        post.update(cur.fetchone())
 
     cur.close()
-    return render_template('home.html', books=books)
+    return render_template('home.html', books=postings)
 
 
 # Page for specific book
@@ -74,10 +79,21 @@ def book(isbn):
 
     # Try to fetch book info from DB
     b = cur.fetchone()
+
+    # Grab the person who posted the book based on isbn
+    cur.execute("select * from postings where UBooks = %s", [isbn])
+
+    # Try to fetch book info from DB
+    p = cur.fetchone()
     cur.close()
 
+    # getting the email of the poster
+    UEmail = tool.getUser("UEmail", p['UserID'], conn)
+
     # Only load page if book was found
-    if b:
+    if b and p:
+        b.update(p)
+        b.update(UEmail)
         return render_template('book.html', book=b)
     # if the book is not found then display error page
     else:
@@ -101,10 +117,6 @@ def search():
         args = ('%' + query + '%',)
         cur.execute(q, args)
         books = cur.fetchall()
-
-        # Add random price
-        for b in books:
-            b['price'] = "$" + str(rm.randrange(600)) + "." + str(rm.randrange(100)).zfill(2)
 
         cur.close()
         return render_template('search.html', books=books, post=True, query=query)
@@ -196,7 +208,6 @@ def posting():
 @app.route('/verifyPosting', methods=['POST'])
 def verifyPosting():
     cur = conn.cursor(dictionary=True)
-    print(request.form)
 
     BISBN = request.form["BISBN"]
     BTitle = request.form["BTitle"].strip()
@@ -231,6 +242,7 @@ def verifyPosting():
     return redirect(url_for('home'))
 
 
+# updates relevant tables after a post has been made
 def postingHelper(BISBN):
     cur = conn.cursor(dictionary=True)
     # adding the posting to the posting tables
@@ -249,8 +261,8 @@ def postingHelper(BISBN):
 
 if __name__ == '__main__':
     # tool.db_setup(conn, conn.cursor(dictionary=True), "sqlcommands_initial.sql")
-    # tool.db_insert_random_users(conn, 30)
-    # tool.db_insert_n_random_postings(conn, 48)
+    # tool.db_insert_random_users(conn, numUsers=20)
+    # tool.db_insert_n_random_postings(conn, numPostings=40)
 
     app.secret_key = os.urandom(12)
     app.debug = True
