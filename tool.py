@@ -32,9 +32,11 @@ def genbook():
 
     BNumber = rm.randint(0, 200)
     BPic = rm.choice(constants.sampleBoookPics)
+    BPrice = float(str(rm.randrange(600)) + "." + str(rm.randrange(100)).zfill(2))
 
     # print(title,author, isbn)
-    return {'id': BNumber, 'title': title, 'author': author, 'isbn': isbn, 'courseID': courseID, 'BPic': BPic}
+    return {'id': BNumber, 'title': title, 'author': author, 'isbn': isbn, 'courseID': courseID, 'BPic': BPic,
+            'BPrice': BPrice, "BDesc": ""}
 
 
 # DB setup
@@ -64,8 +66,8 @@ def db_setup(connection, cursor, filename):
 def db_add_book(connection, cursor, book_info):
     if connection is not None:
 
-        insertion_command = "INSERT INTO Books (BNumber, BTitle, BAuthor, BISBN, BCourse, BPic) VALUES (%s, %s, %s, " \
-                            "%s, %s, %s) "
+        insertion_command = "INSERT INTO Books (BNumber, BTitle, BAuthor, BISBN, BCourse, BPic, BPrice, BDesc) VALUES " \
+                            "(%s, %s, %s, %s, %s, %s, %s, %s) "
 
         if type(book_info) == list:
             cursor.executemany(insertion_command, book_info)
@@ -96,6 +98,55 @@ def db_get_n_books(cursor, numberOfBooks):
 
     else:
         print("Cursor is None")
+
+
+# adds b users to the database
+def db_insert_random_users(conn, numUsers):
+    while numUsers > 0:
+        username = names.get_full_name().replace(" ", "_")
+        password = "VerySecurePassword"
+        email = username + "@uwindsor.ca"
+        valid, _ = register(username, password, email, conn)
+
+        if valid:
+            numUsers -= 1
+
+
+# adds a random postings to the database
+def db_insert_random_posting(conn, UserID, UBooks, PostDates):
+    cur = conn.cursor(dictionary=True)
+    insertion_command = "INSERT INTO Postings (UserID, UBooks, PostDates) VALUES (%s, %s, %s)"
+    cur.execute(insertion_command, [UserID, UBooks, PostDates])
+    conn.commit()
+    cur.close()
+
+
+# adds n random postings to the database
+def db_insert_n_random_postings(conn, numPostings):
+    cur = conn.cursor(dictionary=True)
+    cur.execute("select UserID from users")
+    availableUserIds = cur.fetchall()
+
+    for _ in range(numPostings):
+        postdate = f"{rm.randint(1900, 2019)}-{rm.randint(1, 13):02d}-{rm.randint(1, 30):02d} {rm.randint(0, 24):02d}:{rm.randint(0, 60):02d}:{rm.randint(0, 59):02d}"
+
+        # creating a book then adding it to the db
+        book = genbook()
+        db_add_book(conn, cur, tuple(book.values()))
+
+        # adding who posted the book to the db
+        UserID = rm.choice(availableUserIds)['UserID']
+        Ubooks = book['isbn']
+        db_insert_random_posting(conn, UserID, Ubooks, postdate)
+
+        # updating the user's list of posted books
+        usersBooks = getUser('UBooks', UserID + "@uwindsor.ca", conn)['UBooks']
+        usersBooks.append(book['isbn'])
+        update_command = "UPDATE Users SET UBooks = %s WHERE UserID = %s"
+        cur.execute(update_command, [json.dumps(usersBooks), UserID])
+        conn.commit()
+
+    cur.close()
 
 
 # checks if a username + password matches anything stored
@@ -152,7 +203,7 @@ def register(username, password, email, conn):
             if isAvailableUsername(username, conn):
                 # generate a user's profile
                 user = dict(UserID=username, UPassword=hash_password(password, None), UEmail=email,
-                            UBooks=json.dumps([]), UOtherInfo="")
+                            UBooks='[]', UOtherInfo="")
 
                 # insert user into the db
                 cur = conn.cursor(dictionary=True)
@@ -163,6 +214,7 @@ def register(username, password, email, conn):
 
                 conn.commit()
 
+                user['UBooks'] = []
                 return True, user
 
             else:
@@ -224,6 +276,34 @@ def isUniversityEmail(email):
     Checks if the person has a university of windsor email
     """
     return email.lower().endswith('@uwindsor.ca')
+
+
+# validates if a given number is a valid isbn13 number
+def isValidISBN(ISBN):
+    if ISBN < 1000000000000 or ISBN > 9999999999999:
+        return False
+
+    multiplier = 3
+    check_sum = ISBN % 10
+    calculated_check_sum = 0
+
+    while ISBN != 0:
+        ISBN = ISBN // 10
+        digit = ISBN % 10
+
+        calculated_check_sum += multiplier * digit
+
+        if multiplier == 3:
+            multiplier = 1
+        else:
+            multiplier = 3
+
+    calculated_check_sum = calculated_check_sum % 10
+
+    if calculated_check_sum != 0:
+        calculated_check_sum = 10 - calculated_check_sum
+
+    return calculated_check_sum == check_sum
 
 
 if __name__ == '__main__':
