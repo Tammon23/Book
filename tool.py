@@ -38,7 +38,6 @@ def genbook():
             f"{rm.choice(['great', 'awesome', 'bad', 'lovely', 'ok'])} condition please contact me at the email " + \
             "above if interested."
 
-    # print(title,author, isbn)
     return {'id': BNumber, 'title': title, 'author': author, 'isbn': isbn, 'courseID': courseID, 'BPic': BPic,
             'BPrice': BPrice, 'BDesc': BDesc}
 
@@ -118,9 +117,32 @@ def db_insert_random_users(conn, numUsers):
 
 # adds a random postings to the database
 def db_insert_random_posting(conn, UserID, UBooks, PostDates):
-    cur = conn.cursor(dictionary=True)
-    insertion_command = "INSERT INTO Postings (UserID, UBooks, PostDates) VALUES (%s, %s, %s)"
-    cur.execute(insertion_command, [UserID, UBooks, PostDates])
+    cur = conn.cursor(dictionary=True, buffered=True)
+
+    retrieval_command = "Select UBooks, PostDates from postings where UserID = %s"
+    cur.execute(retrieval_command, [UserID])
+    data = cur.fetchone()
+
+    # in case that this is the first posting by a user
+    # add a row in the table
+    if data is None:
+        insertion_command = "INSERT INTO Postings (UserID, UBooks, PostDates) VALUES (%s, %s, %s)"
+        cur.execute(insertion_command, [UserID, json.dumps([UBooks]), json.dumps([PostDates])])
+
+    # if the user posted a book already, update data
+    else:
+        pBooks, pPostingDates = json.loads(data['UBooks']), json.loads(data['PostDates'])
+
+        # updating the data to now include the new post
+        pBooks.append(UBooks)
+        pPostingDates.append(PostDates)
+
+        update_postings_command_1 = "UPDATE Postings SET UBooks = %s WHERE UserID = %s"
+        update_postings_command_2 = "UPDATE Postings SET PostDates = %s WHERE UserID = %s"
+
+        cur.execute(update_postings_command_1, [json.dumps(pBooks), UserID])
+        cur.execute(update_postings_command_2, [json.dumps(pPostingDates), UserID])
+
     conn.commit()
     cur.close()
 
@@ -149,11 +171,6 @@ def db_insert_n_random_postings(conn, numPostings):
         Ubooks = book['isbn']
         db_insert_random_posting(conn, UserID, Ubooks, postdate)
 
-        # updating the user's list of posted books
-        usersBooks = getUser('UBooks', UserID + "@uwindsor.ca", conn)['UBooks']
-        usersBooks.append(book['isbn'])
-        update_command = "UPDATE Users SET UBooks = %s WHERE UserID = %s"
-        cur.execute(update_command, [json.dumps(usersBooks), UserID])
         conn.commit()
 
     cur.close()

@@ -54,18 +54,10 @@ def index():
 @app.route('/home')
 def home():
     cur = conn.cursor(dictionary=True)
-
-    # Fetch some number of posts from DB to display
-    cur.execute("select * from postings limit %s", [24])
-    postings = cur.fetchall()
-
-    # getting more book information from each post
-    for post in postings:
-        cur.execute("select * from books where BISBN = %s", [post['UBooks']])
-        post.update(cur.fetchone())
-
+    cur.execute("select * from books limit %s", [24])
+    books = cur.fetchall()
     cur.close()
-    return render_template('home.html', books=postings)
+    return render_template('home.html', books=books)
 
 
 # Page for specific book
@@ -81,11 +73,21 @@ def book(isbn):
     b = cur.fetchone()
 
     # Grab the person who posted the book based on isbn
-    cur.execute("select * from postings where UBooks = %s", [isbn])
+    # I Limit 1 because this particular db structure only allows a single type of book
+    # to be posted once, meaning there should only be 1 result
+    cur.execute(f"select * from postings where UBooks LIKE '%\"{isbn}\"%' LIMIT 1")
 
     # Try to fetch book info from DB
     p = cur.fetchone()
     cur.close()
+
+    # changing the serialized lists, to a list data structure
+    p['UBooks'] = json.loads(p['UBooks'])
+    p['PostDates'] = json.loads(p['PostDates'])
+
+    # removing all other books and postdates except the one for this book
+    p['PostDates'] = p['PostDates'][p['UBooks'].index(isbn)]
+    p['UBooks'] = isbn
 
     # getting the email of the poster
     UEmail = tool.getUser("UEmail", p['UserID'], conn)
@@ -95,6 +97,7 @@ def book(isbn):
         b.update(p)
         b.update(UEmail)
         return render_template('book.html', book=b)
+
     # if the book is not found then display error page
     else:
         return redirect(url_for('index'))
@@ -155,7 +158,6 @@ def verifySignUp():
 
     # if the account was created successfully log the account in
     # result should contain the user dict
-
     return verifyLogin(result)
 
 
@@ -233,7 +235,7 @@ def verifyPosting():
         conn.commit()
         cur.close()
 
-    except mysql.connector.Error as err:
+    except mysql.connector.Error:
         cur.close()
         return jsonify({"error": f"ISBN {BISBN} has already been posted"})
 
@@ -244,22 +246,41 @@ def verifyPosting():
 
 # updates relevant tables after a post has been made
 def postingHelper(BISBN):
-    cur = conn.cursor(dictionary=True)
-    # adding the posting to the posting tables
-    insertion_command = "INSERT INTO Postings (UserID, UBooks, PostDates) VALUES (%s, %s, %s)"
-    cur.execute(insertion_command,
-                [session['user_dict']['UserID'], BISBN, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    cur = conn.cursor(dictionary=True, buffered=True)
 
-    # updating the user's posting profile
-    usersBooks = session['user_dict']['UBooks']
-    usersBooks.append(BISBN)
-    update_command = "UPDATE Users SET UBooks = %s WHERE UserID = %s"
-    cur.execute(update_command, [json.dumps(usersBooks), session['user_dict']['UserID']])
+    # getting all books posted by a user
+    retrieval_command = "Select UBooks, PostDates from postings where UserID = %s"
+    cur.execute(retrieval_command, [session['user_dict']['UserID']])
+    data = cur.fetchone()
+    post_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # in case that this is the first posting by a user
+    # add a row in the table
+    if data is None:
+        insertion_command = "INSERT INTO Postings (UserID, UBooks, PostDates) VALUES (%s, %s, %s)"
+        cur.execute(insertion_command, [session['user_dict']['UserID'], json.dumps([BISBN]), json.dumps([post_date])])
+
+    # if the user posted a book already, update data
+    else:
+        pBooks, pPostingDates = json.loads(data['UBooks']), json.loads(data['PostDates'])
+
+        # updating the data to now include the new post
+        pBooks.append(BISBN)
+        pPostingDates.append(post_date)
+
+        # updating the row in the db
+        update_postings_command_1 = "UPDATE Postings SET UBooks = %s WHERE UserID = %s"
+        update_postings_command_2 = "UPDATE Postings SET PostDates = %s WHERE UserID = %s"
+
+        cur.execute(update_postings_command_1, [json.dumps(pBooks), session['user_dict']['UserID']])
+        cur.execute(update_postings_command_2, [json.dumps(pPostingDates), session['user_dict']['UserID']])
+
     conn.commit()
     cur.close()
 
 
 if __name__ == '__main__':
+    # set up commands
     # tool.db_setup(conn, conn.cursor(dictionary=True), "sqlcommands_initial.sql")
     # tool.db_insert_random_users(conn, numUsers=20)
     # tool.db_insert_n_random_postings(conn, numPostings=40)
