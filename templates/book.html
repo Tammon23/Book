@@ -1,4 +1,30 @@
-<h1 style="text-align:center;"><marquee>{{isbn}}</marquee></h1>
-<h3>Here be image</h3>
-<h1>{{ book['BTitle'] }}: ISBN-{{ book['BIsbn']}}</h1>
-<h2>{{ book['BAuthor'] }}</h2>
+{% extends "layout.html"%}
+{% block header %}
+  <title>{{ book['BTitle'] }}</title>
+{% endblock %}
+{% block body %}
+
+    {% if book is defined %}
+    <div style="display:inline-block;vertical-align:top;">
+    <img src="{{ book['BPic'] }}" alt="Book Title" width="425" height="550">
+    </div>
+    <div style="display:inline-block;width:60%;" class="multiline">
+        <br><br><br><br><br>
+        <p>Title: {{ book['BTitle'] }}</p>
+        <p>Author: {{ book['BAuthor'] }}</p>
+        <p>Related Course: {{ book['BCourse'] }}</p>
+        <p>ISBN-13: {{ book['BISBN'] }}</p>
+        <p>Price: ${{ book['BPrice'] }}</p>
+        {% if book.BDesc != '' %}
+            <p>Description: {{ book['BDesc'] }}<p/>
+        {% endif %}
+        <p>Posted By: {{ book['UEmail'] }}</p>
+        <p>Posted On: {{ book['PostDates'][:11] }}</p>
+
+    </div>
+    {% else %}
+    <h1>No book found</h1>
+    {% endif %}
+
+
+{% endblock %}}

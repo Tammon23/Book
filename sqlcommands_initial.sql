@@ -1,63 +1,55 @@
 /* These are commands used for creating some databases we might use in the beginning and inserting sample data.
  */
 
---
--- Table structure for table `Books`
---
-
-CREATE TABLE `Books` (
-  `BCourseID` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `BTitle` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `BAuthor` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `BIsbn` varchar(255) COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Table structure for table `Courses`
---
-
-CREATE TABLE `Courses` (
-  `CId` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
-  `CTitle` varchar(255) COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Table structure for table `users`
---
-
-CREATE TABLE `users` (
-  `user` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
-  `pass` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `isadmin` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE TABLE Courses (
+  CourseID varchar(10) NOT NULL,
+  CourseTitle varchar(255) NOT NULL,
+/*  'CourseBook' varchar(255) NOT NULL*/
+  PRIMARY KEY (CourseID) /*Or BISBN*/);
 
 
---
--- Dumping data for table `users`
---
+CREATE TABLE Books (
+  BISBN varchar(255) NOT NULL,
+  BTitle varchar(255) NOT NULL,
+  BAuthor varchar(255) NOT NULL,
+  BCourse varchar(10) NOT NULL,
+  BPrice DECIMAL(6, 2) NOT NULL,
+  BDesc varchar(500),
+  BPic varchar(255), /*a place holder for storing references to potentially more than one pictures*/
+  BNumber INT, /*BNumber represents the number of books, rather than some kind of identity*/
+  PRIMARY KEY (BISBN),
+  FOREIGN KEY (BCourse) REFERENCES Courses(CourseID));
 
-INSERT INTO `users` (`user`, `pass`, `isadmin`) VALUES
-('normal', 'normal3110', 0),
-('super', 'super3110', 1);
 
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`user`);
+CREATE TABLE Users (
+  UserID varchar(20) NOT NULL,
+  UEmail varchar(30) NOT NULL,
+  UPassword varchar(255) NOT NULL,
+  IsAdmin tinyint(1) NOT NULL DEFAULT 0, /*Newly added to check the status of users*/
+  UBooks varchar(255),
+  UOtherInfo varchar(255),
+  PRIMARY KEY (UserID)
+/*  FOREIGN KEY (UBooks) REFERENCES Books(BISBN)*/ /*this may not work if Users have posted more than one book, or user did not post any book*/
+  );
+
+
+CREATE TABLE Postings (
+  UserID varchar(20) NOT NULL,
+  UBooks varchar(255) NOT NULL,
+  PostDates varchar(255) NOT NULL /*used varchar rather than date data type because may contain more than one dates in each*/
+  /*PRIMARY KEY (UserID)*/ /*might not be used as primary key if multiple rows are used*/
+  /*FOREIGN KEY (UBooks) REFERENCES Books(BISBN)*/ /*this may not work if Users have posted more than one book*/
+  );
+
 COMMIT;
 
 
---
--- Dumping data for table `Courses`
---
-
-INSERT INTO `Courses` (`CId`, `CTitle`) VALUES
+/*These data do not containing book info, so might not be used yet*/
+INSERT INTO Courses VALUES
 ('COMP-1000', 'Key Concepts in Computer Science'),
 ('COMP-1400', 'Introduction to Algorithms and Programming I'),
 ('COMP-1410', 'Introduction to Algorithms and Programming II'),
 ('COMP-2120', 'Object-Oriented Programming Using Java'),
-('COMP-2140', 'Computer Languages, Grammars, and Translators'),
 ('COMP-2140', 'Computer Languages, Grammars, and Translators'),
 ('COMP-2310', 'Theoretical Foundations of Computer Science'),
 ('COMP-2540', 'Data Structures and Algorithms'),
@@ -97,7 +89,6 @@ INSERT INTO `Courses` (`CId`, `CTitle`) VALUES
 ('COMP-4990', 'Project Management: Techniques and Tools'),
 ('MATH-1020', 'Mathematical Foundations'),
 ('MATH-1250', 'Linear Algebra I'),
-('MATH-1260', 'Vectors and Linear Algebra'),
 ('MATH-1260', 'Vectors and Linear Algebra'),
 ('MATH-1270', 'Linear Algebra (Engineering)'),
 ('MATH-1280', 'Access to Linear Algebra'),
